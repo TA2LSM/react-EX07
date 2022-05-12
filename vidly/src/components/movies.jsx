@@ -1,17 +1,26 @@
 import React, { Component } from "react"; //imrc
 import { getMovies } from "../services/fakeMovieService";
+import { getGenres } from "../services/fakeGenreService";
 
 import Like from "./common/like";
 import Pagination from "./common/pagination";
+import ListGroup from "./common/listGroup";
+
 import { paginate } from "../utils/paginate";
 
 //cc
 class Movies extends Component {
   state = {
-    movies: getMovies(), // bu yöntem çok da doğru değil ama hızlı başlangıç için ilk başta böyle yapıldı
+    movies: [],
+    genres: [],
     currentPage: 1,
     pageSize: 4,
+    // selectedGenre: [],
   };
+
+  componentDidMount() {
+    this.setState({ movies: getMovies(), genres: getGenres() });
+  }
 
   // arrow function syntax'i kullanıldı. (this ifadesini constructor içinde bind etmeye gerek olmasın diye)
   handleDelete = (movie) => {
@@ -41,9 +50,20 @@ class Movies extends Component {
     this.setState({ currentPage: pageNumber });
   };
 
+  handleGenreSelect = (genre) => {
+    //console.log(genre);
+    this.setState({ selectedGenre: genre });
+  };
+
   render() {
     const { length: count } = this.state.movies;
-    const { currentPage, pageSize, movies: allMovies } = this.state;
+    const {
+      currentPage,
+      pageSize,
+      selectedGenre,
+      movies: allMovies,
+      genres: allGenres,
+    } = this.state;
 
     if (count === 0) return <p>There no movies in the database!</p>;
 
@@ -54,59 +74,86 @@ class Movies extends Component {
       // hata nedeni jsx'de her zaman tek element return edilebilir. Eğer birden fazla element return edilecek
       // ise bunu react'ın anlaması için return edilecek elementlerin ya div ya da React.Fragment içine
       // koyulması lazım. (parent lazım)
-      <div>
-        <p>
-          Showing <b>{count}</b> movies in the database
-        </p>
-        {/* table.table>thead>tr>th*4 yazıp enter'a basınca template otomatik olarak çıkıyor. (Zen coding) */}
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Genre</th>
-              <th>Stok</th>
-              <th>Rate</th>
-              <th>Like</th>
-              <th>Modify</th>
-            </tr>
-          </thead>
-          <tbody>
-            {movies.map((movie) => (
-              <tr key={movie._id}>
-                <td>{movie.title}</td>
-                <td>{movie.genre.name}</td>
-                <td className="font-weight-bold">{movie.numberInStock}</td>
-                <td>{movie.dailyRentalRate}</td>
-                <td>
-                  <Like
-                    liked={movie.liked}
-                    onClick={() => this.handleLike(movie)}
-                  />
-                </td>
-                <td>
-                  {/* 
+
+      <div className="row g-2">
+        <div className="col-2">
+          <ListGroup
+            items={allGenres}
+            selectedItem={selectedGenre}
+            // aşağıdaki değerler modül içinde default geçildi. Burada başka bir değer verilirse
+            // default değerlerin üstüne yazılır.
+            // textProperty="name"
+            // valueProperty="_id"
+            onItemSelect={this.handleGenreSelect}
+          />
+        </div>
+
+        <div className="col">
+          <div className="col g-2">
+            <div
+              className="row d-flex align-content-start"
+              style={{ height: "320px" }}
+            >
+              <p>
+                Showing <b>{count}</b> movies in the database
+              </p>
+              {/* table.table>thead>tr>th*4 yazıp enter'a basınca template otomatik olarak çıkıyor. (Zen coding) */}
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Genre</th>
+                    <th>Stok</th>
+                    <th>Rate</th>
+                    <th>Like</th>
+                    <th>Modify</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {movies.map((movie) => (
+                    <tr key={movie._id}>
+                      <td>{movie.title}</td>
+                      <td>{movie.genre.name}</td>
+                      <td className="font-weight-bold">
+                        {movie.numberInStock}
+                      </td>
+                      <td>{movie.dailyRentalRate}</td>
+                      <td>
+                        <Like
+                          liked={movie.liked}
+                          onClick={() => this.handleLike(movie)}
+                        />
+                      </td>
+                      <td>
+                        {/* 
                     button.btn.btn-danger.btn-sm yazıp tab'a basınca aşağıdaki template çıkıyor 
                     bir metoda parametre geçebilmek için () => this.method(param) şeklinde yazmak gerekiyor.
                     parametre almayan bir metot ise ASLA this.method() olarak yazmıyoruz this.method olarak yazıyoruz.
                 */}
-                  <button
-                    onClick={() => this.handleDelete(movie)}
-                    className="btn btn-danger btn-sm font-weight-bold"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                        <button
+                          onClick={() => this.handleDelete(movie)}
+                          className="btn btn-danger btn-sm font-weight-bold"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-        <Pagination
-          itemsCount={count}
-          pageSize={pageSize}
-          currentPage={currentPage}
-          onPageChange={this.handlePageChange}
-        />
+            <hr style={{ border: "1px dashed red" }} />
+            <div className="row">
+              <Pagination
+                itemsCount={count}
+                pageSize={pageSize}
+                currentPage={currentPage}
+                onPageChange={this.handlePageChange}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
