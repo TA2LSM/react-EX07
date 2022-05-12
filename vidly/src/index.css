@@ -1,0 +1,6 @@
+body {
+  margin: 0;
+  padding: 20px 0 0 0; 
+  /* 20px from top and 0 pixels from right, bottom and left */
+  font-family: sans-serif;
+}
